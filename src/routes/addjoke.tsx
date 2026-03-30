@@ -1,5 +1,4 @@
 import { joke } from '#/db/schema';
-import { authClient } from '#/lib/auth-client';
 import { getSession } from '#/lib/auth.functions';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { useState, type ReactEventHandler } from 'react'
@@ -15,21 +14,30 @@ export const Route = createFileRoute('/addjoke')({
       throw redirect({ to: "/signin" });
     }
 
-    return { user: session.user };
+    return { currentUser: session.user };
+  },
+  loader: async ({ context }) => {
+    // Access 'currentUser' from the context passed from beforeLoad
+    const { currentUser } = context; 
+    // Fetch data using the user info
+    //const data = await fetchSomeData(currentUser.id);
+    return {
+      currentUserData: currentUser,
+    };
   },
   component: RouteComponent,
 })
 
 function RouteComponent() {
+    // Access the data returned by the loader
+  const { currentUserData } = Route.useLoaderData();
     const navigate = useNavigate();
-    const { data:session } = authClient.useSession();
     const [content, setContent] = useState<string>("");
-    const [uid, setUid] = useState<string | null>(session.user.id);
     const handleSubmit: ReactEventHandler<HTMLFormElement> = async(e) => {
         e.preventDefault();
         const newJoke: NewJoke = { 
           content: content, 
-          userId: uid,
+          userId: currentUserData.id,
         };
         try {
         await createJoke({

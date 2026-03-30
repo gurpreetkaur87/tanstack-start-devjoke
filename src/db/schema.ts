@@ -1,14 +1,13 @@
 import { relations } from "drizzle-orm";
 import { pgTable, primaryKey, integer, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
 
-
-export const like = pgTable("like", {
+export const vote = pgTable("vote", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-  vote: text("vote").notNull(),
+  voted: text("voted").notNull(),
   jokeId: integer("joke_id").notNull().references(()=>joke.id, {onDelete: "cascade"}),
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
 },
@@ -106,7 +105,7 @@ export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   jokes: many(joke),
-  likes: many(like),
+  votes: many(vote),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -128,16 +127,16 @@ export const jokeRelations = relations(joke, ({ one, many }) => ({
     fields: [joke.userId],
     references: [user.id],
   }),
-  like: many(like)
+  vote: many(vote)
 }));
 
-export const likeRelations = relations(like, ({ one }) => ({
+export const voteRelations = relations(vote, ({ one }) => ({
   user: one(user, {
-    fields: [like.userId],
+    fields: [vote.userId],
     references: [user.id],
   }),
   joke: one(joke, {
-    fields: [like.jokeId],
+    fields: [vote.jokeId],
     references: [joke.id],
   }),
 }));
